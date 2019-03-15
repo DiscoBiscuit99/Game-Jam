@@ -20,5 +20,15 @@ return {
 		component.sprite = love.graphics.newImage(sprite)
 
 		return component
+	end,
+
+	collision_box = function(width, height)
+		local component = ecs.component.new("collision_box")
+
+		component.width = width
+		component.height = height
+
+		return component
 	end
+
 }

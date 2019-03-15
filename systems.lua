@@ -14,23 +14,17 @@ return {
 			if entity:get("sprite") then
 				drawn = entity:get("sprite")
 			end
-
-			if entity:get("player") then
-				love.graphics.draw(drawn.sprite, position.x, position.y)
-			end
+			love.graphics.draw(drawn.sprite, position.x, position.y)
 		end
 
 		return system
 	end,
 
-	movement = function()
-		local system = ecs.system.new({ "position" })
-
-		function system:load(entity)
-		end
+	movement = function(world)
+		local system = ecs.system.new({ "position", "collision_box" })
 
 		function system:update(dt, entity)
-			local position = entity:get("position")			
+			local position = entity:get("position")
 
 			local input = Input()
 
@@ -39,22 +33,48 @@ return {
 			input:bind('s', 'down')
 			input:bind('w', 'up')
 
+			local goal_x = position.x
+			local goal_y = position.y
+
 			if entity:get("player") then
 				if input:down('right') then
-					position.x = position.x + 100*dt
+					goal_x = position.x + 100*dt
 				elseif input:down('left') then
-					position.x = position.x - 100*dt
+					goal_x = position.x - 100*dt
 				end
 
 				if input:down('down') then
-					position.y = position.y + 100*dt
+					goal_y = position.y + 100*dt
 				elseif input:down('up') then
-					position.y = position.y - 100*dt
+					goal_y = position.y - 100*dt
 				end
+
+				local dx, dy = world:move(entity, goal_x, goal_y)
+				position.x = dx
+				position.y = dy 
 			end
 		end
 
 		return system
+	end,
+
+	collision = function(world)
+		local system = ecs.system.new({ "collision_box", "position" })
+
+		function system:load(entity)
+			local collision_box = entity:get("collision_box")
+			local position = entity:get("position")
+
+			world:add(entity, position.x, position.y, collision_box.width, collision_box.height)
+		end
+
+		--function system:update(dt, entity)
+		--	local position = entity:get("position")
+		--	world:move(entity, position.x, position.y)
+		--end
+
+		return system
 	end
+
 }
 

@@ -3,6 +3,8 @@ local ecs = require("lib.ecs")
 local components = require("components")
 local systems	 = require("systems")
 
+local camera = require("lib.camera")
+
 local Input = require("lib.input")
 
 local WIDTH  = love.graphics.getWidth()
@@ -27,7 +29,7 @@ function love.load()
 
 	player:add_component(ecs.component.new("player"))
 	player:add_component(components.position(WIDTH/2, HEIGHT/2))
-	player:add_component(components.sprite("assets/sprites/test_sprite.png"))
+	player:add_component(components.sprite("assets/sprites/player_sprite.png"))
 
 	world:add_system(systems.renderer())
 	world:add_system(systems.movement())

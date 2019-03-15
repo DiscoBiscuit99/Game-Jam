@@ -1,10 +1,14 @@
 local ecs = require("lib.ecs")
 
+local camera = require("lib.camera")
+
 local Input = require("lib.input")
 
 return {
 	renderer = function()
 		local system = ecs.system.new({ "position" })
+
+		local camera = camera.new()
 
 		function system:draw(entity)
 			local position = entity:get("position")
@@ -12,29 +16,35 @@ return {
 				shape = entity:get("shape")	
 			end
 			if entity:get("sprite") then
+				love.graphics.setDefaultFilter("nearest", "nearest")
 				drawn = entity:get("sprite")
 			end
+
 			love.graphics.draw(drawn.sprite, position.x, position.y)
+      
 		end
 
 		return system
 	end,
 
+
 	movement = function(world)
 		local system = ecs.system.new({ "position", "collision_box" })
+
+		local input = Input()
+
+		input:bind('d', 'right')
+		input:bind('a', 'left')
+		input:bind('s', 'down')
+		input:bind('w', 'up')
+
 
 		function system:update(dt, entity)
 			local position = entity:get("position")
 
-			local input = Input()
-
-			input:bind('d', 'right')
-			input:bind('a', 'left')
-			input:bind('s', 'down')
-			input:bind('w', 'up')
-
 			local goal_x = position.x
 			local goal_y = position.y
+
 
 			if entity:get("player") then
 				if input:down('right') then

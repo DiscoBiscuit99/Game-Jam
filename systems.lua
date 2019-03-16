@@ -51,11 +51,16 @@ return {
 				if entity:get("animation") then
 					local animation = entity:get("animation")
 					drawn = animation
-					local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.animations[2].quads) + 1
-					love.graphics.draw(animation.sprites[2], animation.animations[2].quads[spriteNum], position.x, position.y)
+					local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.animations[animation.current_anim].quads) + 1
+					love.graphics.draw(animation.sprites[animation.current_anim], animation.animations[animation.current_anim].quads[spriteNum], position.x, position.y)
 				else
 					love.graphics.draw(drawn.sprite, position.x, position.y)
 				end
+
+				--if entity:get("collision_box") then
+				--	local collision_box = entity:get("collision_box")
+				--	love.graphics.rectangle("line",  collision_box.x, collision_box.y, collision_box.width, collision_box.height)
+				--end
 
 			end)
 			
@@ -79,41 +84,107 @@ return {
 
 		function system:update(dt, entity)
 			local position = entity:get("position")
+			local collision_box = entity:get("collision_box")
 
-			local goal_x = position.x
-			local goal_y = position.y
+			local goal_x = collision_box.x
+			local goal_y = collision_box.y
 
 
-			if entity:get("player") then
+			if entity:get("player") and entity:get("animation") then
+				local animation = entity:get("animation")
+				
+				animation.current_anim = 5
+
 				if input:down('right') then
-					goal_x = position.x + 200 * dt
+					goal_x = collision_box.x + 200 * dt
+					animation.current_anim = 2
 				elseif input:down('left') then
-					goal_x = position.x - 200 * dt
+					goal_x = collision_box.x - 200 * dt
+					animation.current_anim = 4
 				end
 
 				if input:down('down') then
-					goal_y = position.y + 200 * dt
+					goal_y = collision_box.y + 200 * dt
+					animation.current_anim = 1
 				elseif input:down('up') then
-					goal_y = position.y - 200 * dt
+					goal_y = collision_box.y - 200 * dt
+					animation.current_anim = 3
 				end
 
 				if input:pressed("dash") then
 					if input:down('right') then
-						goal_x = position.x + 5000 * dt
+						goal_x = collision_box.x + 5000 * dt
 					elseif input:down('left') then
-						goal_x = position.x - 5000 * dt
+						goal_x = collision_box.x - 5000 * dt
 					end
 	
 					if input:down('down') then
-						goal_y = position.y + 5000 * dt
+						goal_y = collision_box.y + 5000 * dt
 					elseif input:down('up') then
-						goal_y = position.y - 5000 * dt
+						goal_y = collision_box.y - 5000 * dt
 					end
 				end
 
 				local dx, dy = world:move(entity, goal_x, goal_y)
-				position.x = dx
-				position.y = dy 
+				position.x = collision_box.x - collision_box.x_offset
+				position.y = collision_box.y - collision_box.y_offset
+			end
+		end
+
+		return system
+	end,
+
+	attack = function(world)
+		local system = ecs.system.new({ "player", "attack_box", "position" })
+
+		local position = entity:get("position")
+
+		local input = Input()
+		input:bind('j', 'attack')
+		input:bind('d', 'right')
+		input:bind('a', 'left')
+		input:bind('s', 'down')
+		input:bind('w', 'up')
+
+		function system:update(dt, entity)
+			if input:pressed("attack") then
+				
+				local dir_x = 0
+				local dir_y = 0
+
+				if input:down('right') then
+					dir_x = 1
+				elseif input:down('left') then
+					dir_x = -1
+				end
+
+				if input:down('down') then
+					dir_y = 1
+				elseif input:down('up') then
+					dir_y = -1
+				end
+
+				local filter = function(item)
+					if item:get("enemy") then
+						return "cross"
+					end
+					return nil
+				end
+
+				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
+
+				for i=1, len, 1 do
+					local other = items[i]
+					local enemy = other:get("enemy") 
+					
+					enemy.health = enemy.health - 50
+
+					if enemy.health <= 0 then
+						world:remove(other)
+						other:destroy()
+					end
+				end
+
 			end
 		end
 
@@ -127,7 +198,17 @@ return {
 			local collision_box = entity:get("collision_box")
 			local position = entity:get("position")
 
-			world:add(entity, position.x, position.y, collision_box.width, collision_box.height)
+			collision_box.x = position.x + collision_box.x_offset
+			collision_box.y = position.y + collision_box.y_offset
+			world:add(entity, collision_box.x, collision_box.y, collision_box.width, collision_box.height)
+		end
+
+		function system:update(dt, entity)
+			local collision_box = entity:get("collision_box")
+			local position = entity:get("position")
+			local x,y = world:getRect(entity)
+			collision_box.x = x
+			collision_box.y = y
 		end
 
 		return system

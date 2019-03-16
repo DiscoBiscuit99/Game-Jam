@@ -27,18 +27,20 @@ return {
 				map_ent.map:bump_init(bump_world)
 				
 				for _, object in pairs(map_ent.map.layers["spawn"].objects) do
-					if object.name == "player_spawn" then
+					if object.name == "enemy_spawn" then
+						enemy = ent_world:create_entity()
+						enemy:add_component(components.enemy(100))
+						enemy:add_component(components.position(object.x, object.y))
+						enemy:add_component(components.collision_box(0, 0, 32, 32))
+            enemy:add_component(components.animation(32, 32, 1, "assets/sprites/enemy/walk_down.png", "assets/sprites/enemy/walk_right.png", "assets/sprites/enemy/walk_up.png", "assets/sprites/enemy/walk_left.png"))
+
+					elseif object.name == "player_spawn" then
 						player = ent_world:create_entity()
 						player:add_component(ecs.component.new("player"))
 						player:add_component(components.position(object.x, object.y))
 						player:add_component(components.collision_box(13, 20, 8, 12))
 						player:add_component(components.animation(32, 32, 1, "assets/sprites/front_walk.png", "assets/sprites/walk_right.png", "assets/sprites/walk_up.png", "assets/sprites/walk_left.png", "assets/sprites/idle.png"))
-					elseif object.name == "enemy_spawn" then
-						enemy = ent_world:create_entity()
-						enemy:add_component(components.enemy(100))
-						enemy:add_component(components.position(object.x, object.y))
-						enemy:add_component(components.collision_box(0, 0, 32, 32))
-						enemy:add_component(components.animation(32, 32, 1, "assets/sprites/enemy/walk_down.png", "assets/sprites/enemy/walk_right.png", "assets/sprites/enemy/walk_up.png", "assets/sprites/enemy/walk_left.png"))
+
 					end
 				end
 			end
@@ -125,6 +127,8 @@ return {
 
 				if entity:get("map") then
 					entity:get("map").map:draw(-l, -t, sx, sy)
+					love.graphics.setColor(1, 0, 0)
+					entity:get("map").map:bump_draw(bump_world)
 				end
 			
 				if entity:get("sprite") then
@@ -140,10 +144,11 @@ return {
 					love.graphics.draw(animation.sprites[animation.current_anim], animation.animations[animation.current_anim].quads[spriteNum], position.x, position.y)
 				end
 
-				--if entity:get("collision_box") then
-				--	local collision_box = entity:get("collision_box")
-				--	love.graphics.rectangle("line",  collision_box.x, collision_box.y, collision_box.width, collision_box.height)
-				--end
+
+				if entity:get("collision_box") then
+					local collision_box = entity:get("collision_box")
+					--love.graphics.rectangle("line",  collision_box.x, collision_box.y, collision_box.width, collision_box.height)
+				end
 			end)
 		end
 

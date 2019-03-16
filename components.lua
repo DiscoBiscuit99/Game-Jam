@@ -38,6 +38,7 @@ return {
 
 		component.sprites = {}
 		component.animations = {}
+		component.current_anim = 1
 
 		for i=1,#args do
 			assert(type(args[i]) == "string", "Additional arguments must be a string. Type is: " .. type(args[i]))
@@ -59,14 +60,35 @@ return {
 		return component
 	end,
 
-	collision_box = function(width, height)
+	collision_box = function(x_offset, y_offset, width, height)
 		local component = ecs.component.new("collision_box")
+
+		component.x = 0
+		component.y = 0
+		component.x_offset = x_offset
+		component.y_offset = y_offset
+		component.width = width
+		component.height = height
+
+		return component
+	end,
+
+	attack_box = function(width, height)
+		local component = ecs.component.new("attack_box")
 
 		component.width = width
 		component.height = height
 
 		return component
 	end,
+
+	enemy = function(health)
+		local component = ecs.component.new("enemy")
+
+		component.health = health
+
+		return component
+	end
 
 	map = function(map_path)
 		local err_msg = "Map path must be a string."

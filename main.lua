@@ -42,16 +42,23 @@ function love.load()
 
 	map = ent_world:create_entity()
 
-	map:add_component(components.map("assets/maps/mapboy.lua"))
+  map:add_component(components.map("assets/maps/mapboy.lua"))
 	map:add_component(components.position(0,0))
 
 	ent_world:add_system(systems.renderer(ent_world, bump_world))
 	ent_world:add_system(systems.movement(bump_world))
 	ent_world:add_system(systems.collision(bump_world))
+	ent_world:add_system(systems.attack(bump_world))
 end
 
 function love.update(dt)
 	ent_world:update(dt)
+end
+
+function love.update(dt)
+	world:update(dt)
+	map:update(dt)
+	love.window.setTitle("FPS: " .. love.timer.getFPS())
 
 	key_bindings()
 end

@@ -1,6 +1,6 @@
 return {
 	new = function(id)
-		assert(id, "ID must be given.")
+		assert(id)
 		local component = { __id = id }
 		return component
 	end

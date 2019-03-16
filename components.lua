@@ -1,5 +1,4 @@
 local ecs = require("lib.ecs")
-local sti = require("lib.sti")
 
 return {
 	position = function(x, y)
@@ -10,12 +9,6 @@ return {
 		component.x = x
 		component.y = y
 
-		return component
-	end,
-	
-	player = function()
-		local component = ecs.component.new("player")
-		
 		return component
 	end,
 
@@ -88,15 +81,6 @@ return {
 		component.health = health
 
 		return component
-	end,
-
-	map = function(map_path)
-		local err_msg = "Map path must be a string."
-		assert(type(map_path) == "string", err_msg)
-		local component = ecs.component.new("map")
-
-		component.map = sti(map_path, { "bump" })
-
-		return component
 	end
+
 }

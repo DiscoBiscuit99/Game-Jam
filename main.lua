@@ -40,7 +40,7 @@ function love.load()
 
 	map = ent_world:create_entity()
 
-	map:add_component(components.map("assets/maps/mapboy.lua"))
+	map:add_component(components.map("assets/maps/map.lua"))
 	map:add_component(components.position(0,0))
 
 	ent_world:add_system(systems.renderer(ent_world, bump_world))

@@ -217,8 +217,6 @@ return {
 	attack = function(world)
 		local system = ecs.system.new({ "player", "attack_box", "position" })
 
-		local position = entity:get("position")
-
 		local input = Input()
 		input:bind('j', 'attack')
 		input:bind('d', 'right')
@@ -227,6 +225,9 @@ return {
 		input:bind('w', 'up')
 
 		function system:update(dt, entity)
+
+			local position = entity:get("position")
+
 			if input:pressed("attack") then
 				
 				local dir_x = 0
@@ -252,13 +253,11 @@ return {
 				end
 
 				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
-
 				for i=1, len, 1 do
-					print(len)
 					local other = items[i]
 					local enemy = other:get("enemy") 
 					print(other:get("enemy"))
-					
+					print("Yeet")
 					enemy.health = enemy.health - 50
 
 					if enemy.health <= 0 then

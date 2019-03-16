@@ -44,48 +44,6 @@ return {
 					end
 				end
 			end
-			
-			--map_ent.map:addCustomLayer("sprite layer", 2)
-			
-			--sprite_layer = map_ent.map.layers["sprite layer"]
-
-			--sprite_layer.sprites = {}
-
-			--position = entity:get("position")
-			--if entity:get("animation") then
-				--print("asss")
-				--sprite_layer.sprites = {
-					--player = {
-						--image = love.graphics.newImage(kkk),
-						--x = position.x,
-						--y = position.y
-					--}
-				--}
-			--end
-
-			--function sprite_layer:update(dt)
-				--for _, sprite in pairs(self.sprites) do
-					--if entity:get("player") then
-						--if input:down('right') then
-							--sprite.x = sprite.x + 200*dt
-						--elseif input:down('left') then
-							--sprite.x = sprite.x - 200*dt
-						--end
-
-						--if input:down('down') then
-							--sprite.y = sprite.y + 200*dt
-						--elseif input:down('up') then
-							--sprite.y = sprite.y - 200*dt
-						--end
-					--end
-				--end
-			--end
-
-			--function sprite_layer:draw()
-				--for _, sprite in pairs(self.sprites) do
-					--love.graphics.draw(sprite.image, sprite.x, sprite.y)
-				--end
-			--end
 		end
 
 		function system:update(dt, entity)
@@ -115,8 +73,8 @@ return {
 		function system:draw(entity)
 			love.graphics.setDefaultFilter("nearest", "nearest")
 
-			--love.graphics.setShader(atmosphere_shader)
-			--atmosphere_shader:send("screen", {WIDTH, HEIGHT})
+			love.graphics.setShader(atmosphere_shader)
+			atmosphere_shader:send("screen", {WIDTH, HEIGHT})
 
 			local position = entity:get("position")
 
@@ -250,15 +208,18 @@ return {
 				end
 
 				local filter = function(item)
-					if item:get("enemy") then
+					
+					if item.components ~= nil and item:get("enemy") then
 						return "cross"
+					else
+						return nil
 					end
-					return nil
 				end
 
 				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
 				for i=1, len, 1 do
 					local other = items[i]
+					
 					local enemy = other:get("enemy")
 
 					enemy.health = enemy.health - 50

@@ -73,20 +73,11 @@ return {
 		return component
 	end,
 
-	attack_box = function(width, height)
-		local component = ecs.component.new("attack_box")
-
-		component.width = width
-		component.height = height
-
-		return component
-	end,
-
 	enemy = function(health)
 		local component = ecs.component.new("enemy")
 
 		component.health = health
-
+		
 		return component
 	end,
 

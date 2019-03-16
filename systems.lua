@@ -4,6 +4,9 @@ local camera = require("lib.camera")
 
 local Input = require("lib.input")
 
+local WIDTH  = love.graphics.getWidth()
+local HEIGHT = love.graphics.getHeight()
+
 return {
 	renderer = function()
 		local system = ecs.system.new({ "position" })
@@ -12,16 +15,20 @@ return {
 
 		function system:draw(entity)
 			local position = entity:get("position")
+
 			if entity:get("shape") then
 				shape = entity:get("shape")	
 			end
 			if entity:get("sprite") then
-				love.graphics.setDefaultFilter("nearest", "nearest")
 				drawn = entity:get("sprite")
 			end
 
-			love.graphics.draw(drawn.sprite, position.x, position.y)
-      
+			if entity:get("player") then
+				camera:set(position.x, position.y)
+				love.graphics.draw(drawn.sprite, position.x, position.y)
+			else
+				love.graphics.draw(drawn.sprite, position.x, position.y)
+			end
 		end
 
 		return system

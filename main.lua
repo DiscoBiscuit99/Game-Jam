@@ -36,10 +36,17 @@ function love.load()
 	map:bump_init(bump_world)
 
 	box = world:create_entity()
+	box2 = world:create_entity()
 
+	box:add_component(ecs.component.new("enemy"))
 	box:add_component(components.position(100, 100))
 	box:add_component(components.sprite("assets/sprites/test_sprite.png"))
 	box:add_component(components.collision_box(0, 0, 32, 32))
+	
+	box2:add_component(ecs.component.new("enemy"))
+	box2:add_component(components.position(150, 100))
+	box2:add_component(components.sprite("assets/sprites/test_sprite.png"))
+	box2:add_component(components.collision_box(0, 0, 32, 32))
 
 	player = world:create_entity()
 
@@ -53,6 +60,7 @@ function love.load()
 	world:add_system(systems.renderer())
 	world:add_system(systems.movement(bump_world))
 	world:add_system(systems.collision(bump_world))
+	world:add_system(systems.attack(bump_world))
 end
 
 function love.update(dt)

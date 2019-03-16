@@ -102,7 +102,7 @@ return {
 					goal_x = collision_box.x - 200 * dt
 					animation.current_anim = 4
 				end
-				
+
 				if input:down('down') then
 					goal_y = collision_box.y + 200 * dt
 					animation.current_anim = 1
@@ -135,14 +135,31 @@ return {
 	end,
 
 	attack = function(world)
-		local system = ecs.system.new({ "player", "attack_box" })
+		local system = ecs.system.new({ "player", "attack_box", "position" })
+
+		local position = entity:get("position")
 
 		local input = Input()
 		input:bind('j', 'attack')
 
 		function system:update(dt, entity)
 			if input:pressed("attack") then
-				local actualX, actualY, cols, len = world:check(item, goalX, goalY)
+				
+
+				local filter = function(item)
+					if item:get("enemy") then
+						return "cross"
+					end
+					return nil
+				end
+
+				local items, len = world:queryRect(position.x, position.y, 32, 32, filter)
+
+				for i=1, len, 1 do
+					world:remove(items[i])
+					items[i]:destroy()
+				end
+
 			end
 		end
 

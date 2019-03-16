@@ -174,8 +174,15 @@ return {
 				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
 
 				for i=1, len, 1 do
-					world:remove(items[i])
-					items[i]:destroy()
+					local other = items[i]
+					local enemy = other:get("enemy") 
+					
+					enemy.health = enemy.health - 50
+
+					if enemy.health <= 0 then
+						world:remove(other)
+						other:destroy()
+					end
 				end
 
 			end

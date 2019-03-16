@@ -26,6 +26,9 @@ end
 
 -- Main functions
 function love.load()
+
+	love.graphics.setDefaultFilter("nearest", "nearest")
+
 	world = ecs.world.new()
 	bump_world = bump.newWorld(32)
 	
@@ -41,9 +44,9 @@ function love.load()
 	player = world:create_entity()
 
 	player:add_component(ecs.component.new("player"))
-	player:add_component(components.position(WIDTH/2, HEIGHT/2))
+	player:add_component(components.position(100, 120))
   
-	player:add_component(components.sprite("assets/sprites/player_sprite.png"))
+	player:add_component(components.animation(32, 32, 1, "assets/sprites/front_walk.png", "assets/sprites/walk_right.png"))
 	player:add_component(components.collision_box(32, 32))
 
 	world:add_system(systems.renderer())

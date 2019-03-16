@@ -15,7 +15,7 @@ return {
 		local system = ecs.system.new({ "position" })
 
 		local cam = gamera.new(0,0,2000,2000)
-		cam:setScale(2)
+		cam:setScale(3)
 
 		local player
 
@@ -38,7 +38,7 @@ return {
 						enemy:add_component(components.enemy(100))
 						enemy:add_component(components.position(object.x, object.y))
 						enemy:add_component(components.collision_box(0, 0, 32, 32))
-						enemy:add_component(components.sprite("assets/sprites/test_sprite.png"))
+						enemy:add_component(components.animation(32, 32, 1, "assets/sprites/enemy/walk_down.png", "assets/sprites/enemy/walk_right.png", "assets/sprites/enemy/walk_up.png", "assets/sprites/enemy/walk_left.png"))
 					end
 				end
 			end
@@ -113,8 +113,8 @@ return {
 		function system:draw(entity)
 			love.graphics.setDefaultFilter("nearest", "nearest")
 
-			love.graphics.setShader(atmosphere_shader)
-			atmosphere_shader:send("screen", {WIDTH, HEIGHT})
+			--love.graphics.setShader(atmosphere_shader)
+			--atmosphere_shader:send("screen", {WIDTH, HEIGHT})
 
 			local position = entity:get("position")
 
@@ -140,10 +140,10 @@ return {
 					love.graphics.draw(animation.sprites[animation.current_anim], animation.animations[animation.current_anim].quads[spriteNum], position.x, position.y)
 				end
 
-				if entity:get("collision_box") then
-					local collision_box = entity:get("collision_box")
-					love.graphics.rectangle("line",  collision_box.x, collision_box.y, collision_box.width, collision_box.height)
-				end
+				--if entity:get("collision_box") then
+				--	local collision_box = entity:get("collision_box")
+				--	love.graphics.rectangle("line",  collision_box.x, collision_box.y, collision_box.width, collision_box.height)
+				--end
 			end)
 		end
 
@@ -160,7 +160,6 @@ return {
 		input:bind('s', 'down')
 		input:bind('w', 'up')
 		input:bind('k', 'dash')
-
 
 		function system:update(dt, entity)
 			local position = entity:get("position")
@@ -255,9 +254,8 @@ return {
 				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
 				for i=1, len, 1 do
 					local other = items[i]
-					local enemy = other:get("enemy") 
-					print(other:get("enemy"))
-					print("Yeet")
+					local enemy = other:get("enemy")
+
 					enemy.health = enemy.health - 50
 
 					if enemy.health <= 0 then
@@ -289,6 +287,16 @@ return {
 			local x,y = world:getRect(entity)
 			collision_box.x = x
 			collision_box.y = y
+		end
+
+		return system
+	end,
+
+	enemy = function(world)
+		local system = ecs.system.new({ "enemy" })
+
+		function system:update(dt, entity)
+
 		end
 
 		return system

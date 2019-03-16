@@ -3,6 +3,9 @@ local Input  = require("lib.input")
 local gamera = require("lib.camera")
 
 
+local WIDTH  = love.graphics.getWidth()
+local HEIGHT = love.graphics.getHeight()
+
 return {
 	renderer = function()
 		local system = ecs.system.new({ "position" })
@@ -12,6 +15,13 @@ return {
 
 		function system:update(dt, entity)
 			local position = entity:get("position")
+
+			if entity:get("shape") then
+				shape = entity:get("shape")	
+			end
+			if entity:get("sprite") then
+				drawn = entity:get("sprite")
+      end
 			
 			if entity:get("player") then
 				cam:setPosition(position.x, position.y)
@@ -49,7 +59,6 @@ return {
 
 			end)
 			
-
 		end
 
 		return system

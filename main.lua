@@ -1,16 +1,17 @@
 local ecs = require("lib.ecs")
+local sti = require("lib.sti")
 
 local components = require("components")
 local systems	 = require("systems")
 
 local camera = require("lib.camera")
 
+local bump = require("lib.bump")
+
 local Input = require("lib.input")
 
 local WIDTH  = love.graphics.getWidth()
 local HEIGHT = love.graphics.getHeight()
-
-local bump = require("lib.bump")
 
 -- General keybindings
 local input = Input()
@@ -29,8 +30,10 @@ function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 
 	world = ecs.world.new()
-
-	bumpWorld = bump.newWorld(32)
+	bump_world = bump.newWorld(32)
+	
+	map = sti("assets/maps/mapboy.lua", { "bump" })
+	map:bump_init(bump_world)
 
 	box = world:create_entity()
 
@@ -47,17 +50,21 @@ function love.load()
 	player:add_component(components.collision_box(32, 32))
 
 	world:add_system(systems.renderer())
-	world:add_system(systems.movement(bumpWorld))
-	world:add_system(systems.collision(bumpWorld))
+	world:add_system(systems.movement(bump_world))
+	world:add_system(systems.collision(bump_world))
 end
 
 function love.update(dt)
 	world:update(dt)
+	map:update(dt)
 
 	key_bindings()
 end
 
 function love.draw()
+	love.graphics.setDefaultFilter("nearest", "nearest")
+	
 	world:draw()
+	map:draw()
 end
 

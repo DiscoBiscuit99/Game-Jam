@@ -141,10 +141,28 @@ return {
 
 		local input = Input()
 		input:bind('j', 'attack')
+		input:bind('d', 'right')
+		input:bind('a', 'left')
+		input:bind('s', 'down')
+		input:bind('w', 'up')
 
 		function system:update(dt, entity)
 			if input:pressed("attack") then
 				
+				local dir_x = 0
+				local dir_y = 0
+
+				if input:down('right') then
+					dir_x = 1
+				elseif input:down('left') then
+					dir_x = -1
+				end
+
+				if input:down('down') then
+					dir_y = 1
+				elseif input:down('up') then
+					dir_y = -1
+				end
 
 				local filter = function(item)
 					if item:get("enemy") then
@@ -153,7 +171,7 @@ return {
 					return nil
 				end
 
-				local items, len = world:queryRect(position.x, position.y, 32, 32, filter)
+				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
 
 				for i=1, len, 1 do
 					world:remove(items[i])

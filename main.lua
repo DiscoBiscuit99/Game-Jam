@@ -66,7 +66,7 @@ end
 function love.update(dt)
 	world:update(dt)
 	map:update(dt)
-
+	love.window.setTitle("FPS: " .. love.timer.getFPS())
 	key_bindings()
 end
 

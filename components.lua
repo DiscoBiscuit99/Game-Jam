@@ -22,20 +22,29 @@ return {
 		return component
 	end,
 
-	animation = function(sprite, width, height, duration)
-		local err_msg = "Sprite path must be a string."
-		assert(type(sprite) == "string", err_msg)
+	animation = function(width, height, duration, ...)
+		--local err_msg = "Sprite path must be a string."
+		--assert(type(sprite) == "string", err_msg)
 		local component = ecs.component.new("animation")
 
-		component.sprite = love.graphics.newImage(sprite)
+		local args = {...}
 
-		component.quads = {}
+		component.sprites = {}
+		component.animations = {}
 
-		for y = 0, component.sprite:getHeight() - height, height do
-			for x = 0, component.sprite:getWidth() - width, width do
-				table.insert(component.quads, love.graphics.newQuad(x, y, width, height, component.sprite:getDimensions()))
+		for i=1,#args do
+			assert(type(args[i]) == "string", "Additional arguments must be a string. Type is: " .. type(args[i]))
+			table.insert(component.sprites, love.graphics.newImage(args[i]))
+			table.insert(component.animations, {})
+			component.animations[i].quads = {}
+			for y = 0, component.sprites[i]:getHeight() - height, height do
+				for x = 0, component.sprites[i]:getWidth() - width, width do
+					table.insert(component.animations[i].quads, love.graphics.newQuad(x, y, width, height, component.sprites[i]:getDimensions()))
+				end
 			end
 		end
+
+		--component.sprite = love.graphics.newImage(sprite)
 		
 		component.duration = duration or 1
     	component.currentTime = 0

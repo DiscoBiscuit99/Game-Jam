@@ -43,7 +43,7 @@ function love.load()
 	player:add_component(ecs.component.new("player"))
 	player:add_component(components.position(100, 120))
   
-	player:add_component(components.animation("assets/sprites/front_walk.png", 32, 32, 1))
+	player:add_component(components.animation(32, 32, 1, "assets/sprites/front_walk.png", "assets/sprites/walk_right.png"))
 	player:add_component(components.collision_box(32, 32))
 
 	world:add_system(systems.renderer())

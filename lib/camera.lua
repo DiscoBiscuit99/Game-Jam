@@ -1,165 +1,208 @@
--- https://github.com/davisdude/Brady
---[[
-Copyright (c) 2016 Davis Claiborne
+-- gamera.lua v1.0.1
 
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+-- Copyright (c) 2012 Enrique García Cota
+-- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-- Based on YaciCode, from Julien Patte and LuaObject, from Sebastien Rocca-Serra
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+local gamera = {}
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-]]
-local function mixin( to, from ) for i, v in pairs( from or {} ) do to[i] = v end end
+-- Private attributes and methods
 
--- Rotate (px, py) about (ox, oy)
-local function rotateAboutPoint( px, py, ox, oy, theta )
-	px, py = px - ox, py - oy
-	local cos, sin = math.cos( theta ), math.sin( theta )
-	return px * cos - py * sin + ox, px * sin + py * cos + oy
+local gameraMt = {__index = gamera}
+local abs, min, max = math.abs, math.min, math.max
+
+local function clamp(x, minX, maxX)
+  return x < minX and minX or (x>maxX and maxX or x)
 end
 
-local function makePush( self, layer )
-	return function()
-		love.graphics.push( layer.mode )
-		love.graphics.origin()
-		love.graphics.translate( self.x + self.offsetX, self.y + self.offsetY )
-		love.graphics.rotate( self.rotation )
-		love.graphics.scale( self.scale * self.aspectRatioScale * layer.scale )
-		love.graphics.translate( -self.translationX * layer.relativeScale, -self.translationY * layer.relativeScale )
-	end
+local function checkNumber(value, name)
+  if type(value) ~= 'number' then
+    error(name .. " must be a number (was: " .. tostring(value) .. ")")
+  end
 end
 
-local function addLayer( self, name, scale, flags )
-	local new = {
-		name = name,
-		scale = scale,
-		relativeScale = 1, -- Controls the translation speed
-		mode = self.mode,
-	}
-	new.push = makePush( self, new )
-	new.pop = love.graphics.pop
-
-	mixin( new, flags )
-
-	self.layers[name] = new
-	return new
+local function checkPositiveNumber(value, name)
+  if type(value) ~= 'number' or value <=0 then
+    error(name .. " must be a positive number (was: " .. tostring(value) ..")")
+  end
 end
 
-local function newCamera( w, h, flags )
-	local scale, scaleW, scaleH
-
-	local new = {
-		-- Attributes
-		x = 0, y = 0,
-		w = w, h = h,
-		translationX = 0, translationY = 0,
-		offsetX = w / 2, offsetY = h / 2,
-		scale = 1,
-		rotation = 0,
-		resizable = false,
-		maintainAspectRatio = false,
-		aspectRatioScale = 1, -- Controls scale due to resizing
-		mode = 'transform',
-		layers = {},
-		-- General Functions
-		update = function( self, containerW, containerH )
-			if self.resizable then self:resizingFunction( self:getContainerDimensions() ) end
-		end,
-		resizingFunction = function( self, containerW, containerH )
-			if self.maintainAspectRatio then
-				containerW, containerH = containerW - 2 * self.x, containerH - 2 * self.y
-				scaleW, scaleH = containerW / self.w, containerH / self.h
-				scale = math.min( scaleW, scaleH )
-				self.w, self.h = scale * self.w, scale * self.h
-			else
-				self.w, self.h = containerW - 2 * self.x, containerH - 2 * self.y
-			end
-			self.aspectRatioScale = self.w / w
-			self.offsetX, self.offsetY = self.w / 2, self.h / 2
-		end,
-		getContainerDimensions = function( self ) return love.graphics.getDimensions() end,
-		addLayer = addLayer,
-		getLayer = function( self, name )
-			return ( type( name ) == 'table' and name or self.layers[name] )
-		end,
-		push = function( self, layer ) self:getLayer( layer or 'main' ):push() end,
-		pop = function( self, layer ) self:getLayer( layer or 'main' ):pop() end,
-		getWorldCoordinates = function( self, x, y, layer )
-			layer = self:getLayer( layer or 'main' )
-			local scaleFactor = self.scale * self.aspectRatioScale * layer.scale
-			x, y = x - self.x - self.offsetX, y - self.y - self.offsetY
-			x, y = rotateAboutPoint( x, y, 0, 0, -self.rotation )
-			x, y = x / scaleFactor, y / scaleFactor
-			return x + self.translationX * layer.relativeScale, y + self.translationY * layer.relativeScale
-		end,
-		getScreenCoordinates = function( self, x, y, layer )
-			layer = self:getLayer( layer or 'main' )
-			local scaleFactor = self.scale * self.aspectRatioScale * layer.scale
-			x, y = x - self.translationX / layer.relativeScale, y - self.translationY * layer.relativeScale
-			x, y = x * scaleFactor, y * scaleFactor
-			x, y = rotateAboutPoint( x, y, 0, 0, self.rotation )
-			x, y = x + self.x + self.offsetX, y + self.y + self.offsetY
-			return x, y
-		end,
-		getMouseWorldCoordinates = function( self, layer )
-			layer = self:getLayer( layer or 'main' )
-			local x, y = love.mouse.getPosition()
-			return self:getWorldCoordinates( x, y, layer )
-		end,
-		increaseScaleToPoint = function( self, ds, wx, wy )
-			if not wx then
-				wx, wy = self:getMouseWorldCoordinates()
-			end
-
-			local tx, ty = self:getTranslation()
-			self:increaseScale( ds )
-			self:increaseTranslation( ( wx - tx ) * ds / self.scale, ( wy - ty ) * ds / self.scale )
-		end,
-		scaleToPoint = function( self, s, wx, wy )
-			if not wx then
-				wx, wy = self:getMouseWorldCoordinates()
-			end
-
-			local tx, ty = self:getTranslation()
-			self:scaleBy( s )
-			self:increaseTranslation( ( wx - tx ) * ( 1 - 1 / s ), ( wy - ty ) * ( 1 - 1 / s ) )
-		end,
-		-- Getters/setters
-		setViewportPosition = function( self, x, y ) self.x, self.y = x, y end,
-		getViewportPosition = function( self ) return self.x, self.y end,
-		setOffset = function( self, x, y ) self.offsetX, self.offsetY = x, y end,
-		getOffset = function( self ) return self.offsetX, self.offsetY end,
-		setTranslation = function( self, x, y ) self.translationX, self.translationY = x or 0, y or 0 end,
-		getTranslation = function( self ) return self.translationX, self.translationY end,
-		increaseTranslation = function( self, dx, dy ) self.translationX, self.translationY = self.translationX + dx, self.translationY + dy end,
-		setRotation = function( self, theta ) self.rotation = theta end,
-		getRotation = function( self ) return self.rotation end,
-		increaseRotation = function( self, dr ) self.rotation = self.rotation + dr end,
-		setScale = function( self, s ) self.scale = s end,
-		getScale = function( self ) return self.scale end,
-		increaseScale = function( self, ds ) self.scale = self.scale + ds end,
-		scaleBy = function( self, ds ) self.scale = self.scale * ds end,
-	}
-	new.translate = new.increaseTranslation
-	new.rotate = new.increaseRotation
-
-	mixin( new, flags )
-	addLayer( new, 'main', 1 )
-
-	return new
+local function checkAABB(l,t,w,h)
+  checkNumber(l, "l")
+  checkNumber(t, "t")
+  checkPositiveNumber(w, "w")
+  checkPositiveNumber(h, "h")
 end
 
+local function getVisibleArea(self, scale)
+  scale = scale or self.scale
+  local sin, cos = abs(self.sin), abs(self.cos)
+  local w,h = self.w / scale, self.h / scale
+  w,h = cos*w + sin*h, sin*w + cos*h
+  return min(w,self.ww), min(h, self.wh)
+end
 
-return setmetatable( { new = newCamera, }, { __call = function( _, ... ) return newCamera( ... ) end } )
+local function cornerTransform(self, x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = x - self.x, y - self.y
+  x,y = -cos*x + sin*y, -sin*x - cos*y
+  return self.x - (x/scale + self.l), self.y - (y/scale + self.t)
+end
+
+local function adjustPosition(self)
+  local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
+  local w,h = getVisibleArea(self)
+  local w2,h2 = w*0.5, h*0.5
+
+  local left, right  = wl + w2, wl + ww - w2
+  local top,  bottom = wt + h2, wt + wh - h2
+
+  self.x, self.y = clamp(self.x, left, right), clamp(self.y, top, bottom)
+end
+
+local function adjustScale(self)
+  local w,h,ww,wh = self.w, self.h, self.ww, self.wh
+  local rw,rh     = getVisibleArea(self, 1)      -- rotated frame: area around the window, rotated without scaling
+  local sx,sy     = rw/ww, rh/wh                 -- vert/horiz scale: minimun scales that the window needs to occupy the world
+  local rscale    = max(sx,sy)
+
+  self.scale = max(self.scale, rscale)
+end
+
+-- Public interface
+
+function gamera.new(l,t,w,h)
+
+  local sw,sh = love.graphics.getWidth(), love.graphics.getHeight()
+
+  local cam = setmetatable({
+    x=0, y=0,
+    scale=1,
+    angle=0, sin=math.sin(0), cos=math.cos(0),
+    l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
+  }, gameraMt)
+
+  cam:setWorld(l,t,w,h)
+
+  return cam
+end
+
+function gamera:setWorld(l,t,w,h)
+  checkAABB(l,t,w,h)
+
+  self.wl, self.wt, self.ww, self.wh = l,t,w,h
+
+  adjustPosition(self)
+end
+
+function gamera:setWindow(l,t,w,h)
+  checkAABB(l,t,w,h)
+
+  self.l, self.t, self.w, self.h, self.w2, self.h2 = l,t,w,h, w*0.5, h*0.5
+
+  adjustPosition(self)
+end
+
+function gamera:setPosition(x,y)
+  checkNumber(x, "x")
+  checkNumber(y, "y")
+
+  self.x, self.y = x,y
+
+  adjustPosition(self)
+end
+
+function gamera:setScale(scale)
+  checkNumber(scale, "scale")
+
+  self.scale = scale
+
+  adjustScale(self)
+  adjustPosition(self)
+end
+
+function gamera:setAngle(angle)
+  checkNumber(angle, "angle")
+
+  self.angle = angle
+  self.cos, self.sin = math.cos(angle), math.sin(angle)
+
+  adjustScale(self)
+  adjustPosition(self)
+end
+
+function gamera:getWorld()
+  return self.wl, self.wt, self.ww, self.wh
+end
+
+function gamera:getWindow()
+  return self.l, self.t, self.w, self.h
+end
+
+function gamera:getPosition()
+  return self.x, self.y
+end
+
+function gamera:getScale()
+  return self.scale
+end
+
+function gamera:getAngle()
+  return self.angle
+end
+
+function gamera:getVisible()
+  local w,h = getVisibleArea(self)
+  return self.x - w*0.5, self.y - h*0.5, w, h
+end
+
+function gamera:getVisibleCorners()
+  local x,y,w2,h2 = self.x, self.y, self.w2, self.h2
+
+  local x1,y1 = cornerTransform(self, x-w2,y-h2)
+  local x2,y2 = cornerTransform(self, x+w2,y-h2)
+  local x3,y3 = cornerTransform(self, x+w2,y+h2)
+  local x4,y4 = cornerTransform(self, x-w2,y+h2)
+
+  return x1,y1,x2,y2,x3,y3,x4,y4
+end
+
+function gamera:draw(f)
+  love.graphics.setScissor(self:getWindow())
+
+  love.graphics.push()
+    local scale = self.scale
+    love.graphics.scale(scale)
+
+    love.graphics.translate((self.w2 + self.l) / scale, (self.h2+self.t) / scale)
+    love.graphics.rotate(-self.angle)
+    love.graphics.translate(-self.x, -self.y)
+
+    f(self:getVisible())
+
+  love.graphics.pop()
+
+  love.graphics.setScissor()
+end
+
+function gamera:toWorld(x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
+  x,y = cos*x - sin*y, sin*x + cos*y
+  return x + self.x, y + self.y
+end
+
+function gamera:toScreen(x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = x - self.x, y - self.y
+  x,y = cos*x + sin*y, -sin*x + cos*y
+  return scale * x + self.w2 + self.l, scale * y + self.h2 + self.t
+end
+
+return gamera
+
+
+
+

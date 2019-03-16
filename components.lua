@@ -88,7 +88,7 @@ return {
 		component.health = health
 
 		return component
-	end
+	end,
 
 	map = function(map_path)
 		local err_msg = "Map path must be a string."

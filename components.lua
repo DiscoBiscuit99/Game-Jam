@@ -77,7 +77,10 @@ return {
 		local component = ecs.component.new("enemy")
 
 		component.health = health
-		
+		component.knockback_x = 0
+		component.knockback_y = 0
+		component.stun_timer = 0
+
 		return component
 	end,
 
@@ -92,11 +95,13 @@ return {
 	end,
 
 	sound = function(sound_path, background)
+
 		local err_msg = "Sound path must be a string."
 		assert(type(sound_path) == "string", err_msg)
 		local component = ecs.component.new("sound")
 
 		component.sound = love.audio.newSource(sound_path, "static")	
+
 		component.background = background
 
 		return component

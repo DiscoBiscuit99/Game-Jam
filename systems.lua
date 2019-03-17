@@ -14,7 +14,7 @@ return {
 	renderer = function(ent_world, bump_world)
 		local system = ecs.system.new({ "position" })
 
-		local cam = gamera.new(0,0,2000,2000)
+		local cam = gamera.new(0,0,3000,3000)
 		cam:setScale(3)
 
 		local player
@@ -41,6 +41,14 @@ return {
 						player:add_component(components.collision_box(13, 20, 8, 12))
 						player:add_component(components.animation(32, 32, 1, "assets/sprites/front_walk.png", "assets/sprites/walk_right.png", "assets/sprites/walk_up.png", "assets/sprites/walk_left.png", "assets/sprites/idle.png"))
 						player:add_component(components.sound("assets/sounds/hit.wav"))
+
+					elseif object.name == "boss_spawn" then
+						boss = ent_world:create_entity()
+						boss:add_component(components.enemy(1000))
+						boss:add_component(components.position(object.x, object.y))
+						boss:add_component(components.sprite("assets/sprites/deamon_sprite.png"))
+						boss:add_component(components.collision_box(0, 0, 64, 60))
+
 					end
 				end
 			end
@@ -86,7 +94,7 @@ return {
 				if entity:get("map") then
 					entity:get("map").map:draw(-l, -t, sx, sy)
 					love.graphics.setColor(1, 0, 0)
-					entity:get("map").map:bump_draw(bump_world)
+					--entity:get("map").map:bump_draw(bump_world)
 				end
 			
 				if entity:get("sprite") then
@@ -215,13 +223,19 @@ return {
 					end
 				end
 
-				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
+				local items, len = world:queryRect(position.x + (20 * dir_x), position.y + (20 * dir_y), 32, 32, filter)
 				for i=1, len, 1 do
 					local other = items[i]
 					local enemy = other:get("enemy")
+					local pos = other:get("position")
 					local sound = entity:get("sound")
 
 					enemy.health = enemy.health - 50
+					enemy.knockback_x = pos.x + 100 * dir_x
+					enemy.knockback_y = pos.y + 100 * dir_y
+					enemy.stun_timer = 1
+
+					sound.sound:play()	
 
 					sound.sound:play()	
 
@@ -270,6 +284,8 @@ return {
 		local px = 0
 		local py = 0
 
+		local range = 200
+
 		function system:update(dt, entity)
 			local position = entity:get("position")
 			local collision_box = entity:get("collision_box")
@@ -280,25 +296,50 @@ return {
 			end
 
 			if entity:get("enemy") then
-
-				local tx = px - position.x
-				local ty = py - position.y
-
-				local len = math.sqrt(math.pow(tx, 2) + math.pow(ty, 2))
-
-				print(tx)
-				print(ty)
-				tx = tx / math.abs(len)
-				ty = ty / math.abs(len)
-
-				local goal_x = position.x + tx * dt * 100
-				local goal_y = position.y + ty * dt * 100
+				local enemy = entity:get("enemy")
 				
-				local dx, dy = world:move(entity, goal_x, goal_y)
-				position.x = dx
-				position.y = dy
-				--position.x = collision_box.x - collision_box.x_offset
-				--position.y = collision_box.y - collision_box.y_offset
+				if enemy.knockback_x > 0 and enemy.knockback_y > 0 or enemy.knockback_x < 0 and enemy.knockback_y < 0 then
+					local tx = enemy.knockback_x - position.x
+					local ty = enemy.knockback_y - position.y
+
+					local len = math.sqrt(math.pow(tx, 2) + math.pow(ty, 2))
+					
+					enemy.stun_timer = enemy.stun_timer - dt 
+
+					if len > 1 and enemy.stun_timer > 0 then
+						tx = tx / math.abs(len)
+						ty = ty / math.abs(len)
+	
+						local goal_x = position.x + tx * dt * 300
+						local goal_y = position.y + ty * dt * 300
+						local dx, dy = world:move(entity, goal_x, goal_y)
+						position.x = dx
+						position.y = dy
+					else
+						enemy.knockback_x = 0
+						enemy.knockback_y = 0
+						enemy.stun_timer = 0
+					end
+
+				else
+					local tx = px - position.x
+					local ty = py - position.y
+	
+					local len = math.sqrt(math.pow(tx, 2) + math.pow(ty, 2))
+
+					if len <= range then
+						tx = tx / math.abs(len)
+						ty = ty / math.abs(len)
+	
+						local goal_x = position.x + tx * dt * 100
+						local goal_y = position.y + ty * dt * 100
+						
+						local dx, dy = world:move(entity, goal_x, goal_y)
+						position.x = dx
+						position.y = dy
+					end
+				end
+
 			end
 		end
 
@@ -349,6 +390,7 @@ return {
 		end
 
 		return system
+
 	end
 }
 

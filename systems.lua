@@ -48,6 +48,7 @@ return {
 						boss:add_component(components.position(object.x, object.y))
 						boss:add_component(components.sprite("assets/sprites/deamon_sprite.png"))
 						boss:add_component(components.collision_box(0, 0, 64, 60))
+
 					end
 				end
 			end
@@ -236,7 +237,14 @@ return {
 
 					sound.sound:play()	
 
+					sound.sound:play()	
+
 					if enemy.health <= 0 then
+						if other:get("sound") then
+							other:get("sound").sound:stop()	
+							other:get("sound").sound = love.audio.newSource("assets/sounds/word_around_the_office-trimmed.wav", "static")
+							other:get("sound").sound:play()
+						end
 						world:remove(other)
 						other:destroy()
 					end
@@ -336,6 +344,53 @@ return {
 		end
 
 		return system
+	end,
+
+	sound = function()
+		local system = ecs.system.new({ "sound" })
+
+		local position
+		local e_vector
+
+		function system:load(entity)
+			
+		end
+
+		function system:update(dt, entity)
+			if entity:get("position") then
+				position = entity:get("position")
+			end
+
+			if entity:get("player") then
+				player_pos = entity:get("position")
+			end
+
+			if entity:get("enemy") then
+				enemy_pos = entity:get("position")
+			end
+
+			if player_pos and enemy_pos then
+				dx = player_pos.x - enemy_pos.x
+				dy = player_pos.y - enemy_pos.y
+
+				local vector = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
+				print("vector: " .. vector)
+
+				ex = dx / math.abs(vector)
+				ey = dy / math.abs(vector)
+
+				if entity:get("sound").background then
+					love.audio.setDistanceModel("inverse")
+					sound = entity:get("sound").sound
+					sound:setVolume(1/vector*6)
+					print("sound: " .. sound:getVolume())
+					sound:play()
+				end
+			end
+		end
+
+		return system
+
 	end
 }
 

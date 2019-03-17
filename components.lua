@@ -94,12 +94,15 @@ return {
 		return component
 	end,
 
-	sound = function(sound_path)
+	sound = function(sound_path, background)
+
 		local err_msg = "Sound path must be a string."
 		assert(type(sound_path) == "string", err_msg)
 		local component = ecs.component.new("sound")
 
 		component.sound = love.audio.newSource(sound_path, "static")	
+
+		component.background = background
 
 		return component
 	end

@@ -37,6 +37,7 @@ function love.load()
 	box:add_component(components.position(100, 100))
 	box:add_component(components.sprite("assets/sprites/test_sprite.png"))
 	box:add_component(components.collision_box(0, 0, 32, 32))
+	box:add_component(components.sound("assets/sounds/jojo-theme.wav", true))
 
 	map = ent_world:create_entity()
 
@@ -48,6 +49,7 @@ function love.load()
 	ent_world:add_system(systems.collision(bump_world))
 	ent_world:add_system(systems.attack(bump_world))
 	ent_world:add_system(systems.enemy(bump_world))
+	ent_world:add_system(systems.sound())
 end
 
 function love.update(dt)

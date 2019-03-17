@@ -89,5 +89,15 @@ return {
 		component.map = sti(map_path, { "bump" })
 
 		return component
+	end,
+
+	sound = function(sound_path)
+		local err_msg = "Sound path must be a string."
+		assert(type(sound_path) == "string", err_msg)
+		local component = ecs.component.new("sound")
+
+		component.sound = love.audio.newSource(sound_path, "static")	
+
+		return component
 	end
 }

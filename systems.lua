@@ -40,7 +40,7 @@ return {
 						player:add_component(components.position(object.x, object.y))
 						player:add_component(components.collision_box(13, 20, 8, 12))
 						player:add_component(components.animation(32, 32, 1, "assets/sprites/front_walk.png", "assets/sprites/walk_right.png", "assets/sprites/walk_up.png", "assets/sprites/walk_left.png", "assets/sprites/idle.png"))
-
+						player:add_component(components.sound("assets/sounds/hit.wav"))
 					end
 				end
 			end
@@ -221,8 +221,11 @@ return {
 					local other = items[i]
 					
 					local enemy = other:get("enemy")
+					local sound = entity:get("sound")
 
 					enemy.health = enemy.health - 50
+
+					sound.sound:play()	
 
 					if enemy.health <= 0 then
 						world:remove(other)
@@ -267,6 +270,5 @@ return {
 
 		return system
 	end
-
 }
 

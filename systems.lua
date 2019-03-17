@@ -226,6 +226,11 @@ return {
 					sound.sound:play()	
 
 					if enemy.health <= 0 then
+						if other:get("sound") then
+							other:get("sound").sound:stop()	
+							other:get("sound").sound = love.audio.newSource("assets/sounds/word_around_the_office-trimmed.wav", "static")
+							other:get("sound").sound:play()
+						end
 						world:remove(other)
 						other:destroy()
 					end
@@ -336,9 +341,8 @@ return {
 				if entity:get("sound").background then
 					love.audio.setDistanceModel("inverse")
 					sound = entity:get("sound").sound
-					sound:setVolume(1/vector*9)
+					sound:setVolume(1/vector*6)
 					print("sound: " .. sound:getVolume())
-					--sound:setPosition(enemy_pos.x, enemy_pos.y)
 					sound:play()
 				end
 			end

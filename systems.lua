@@ -32,7 +32,7 @@ return {
 						enemy:add_component(components.enemy(100))
 						enemy:add_component(components.position(object.x, object.y))
 						enemy:add_component(components.collision_box(0, 0, 32, 32))
-            enemy:add_component(components.animation(32, 32, 1, "assets/sprites/enemy/walk_down.png", "assets/sprites/enemy/walk_right.png", "assets/sprites/enemy/walk_up.png", "assets/sprites/enemy/walk_left.png"))
+            			enemy:add_component(components.animation(32, 32, 1, "assets/sprites/enemy/walk_down.png", "assets/sprites/enemy/walk_right.png", "assets/sprites/enemy/walk_up.png", "assets/sprites/enemy/walk_left.png"))
 
 					elseif object.name == "player_spawn" then
 						player = ent_world:create_entity()
@@ -208,7 +208,6 @@ return {
 				end
 
 				local filter = function(item)
-					
 					if item.components ~= nil and item:get("enemy") then
 						return "cross"
 					else
@@ -219,7 +218,6 @@ return {
 				local items, len = world:queryRect(position.x + (10 * dir_x), position.y + (10 * dir_y), 32, 32, filter)
 				for i=1, len, 1 do
 					local other = items[i]
-					
 					local enemy = other:get("enemy")
 					local sound = entity:get("sound")
 
@@ -262,10 +260,41 @@ return {
 	end,
 
 	enemy = function(world)
-		local system = ecs.system.new({ "enemy" })
+		local system = ecs.system.new({ "position", "collision_box" })
+
+		local px = 0
+		local py = 0
 
 		function system:update(dt, entity)
+			local position = entity:get("position")
+			local collision_box = entity:get("collision_box")
 
+			if entity:get("player") then
+				px = position.x
+				py = position.y
+			end
+
+			if entity:get("enemy") then
+
+				local tx = px - position.x
+				local ty = py - position.y
+
+				local len = math.sqrt(math.pow(tx, 2) + math.pow(ty, 2))
+
+				print(tx)
+				print(ty)
+				tx = tx / math.abs(len)
+				ty = ty / math.abs(len)
+
+				local goal_x = position.x + tx * dt * 100
+				local goal_y = position.y + ty * dt * 100
+				
+				local dx, dy = world:move(entity, goal_x, goal_y)
+				position.x = dx
+				position.y = dy
+				--position.x = collision_box.x - collision_box.x_offset
+				--position.y = collision_box.y - collision_box.y_offset
+			end
 		end
 
 		return system

@@ -47,6 +47,7 @@ function love.load()
 	ent_world:add_system(systems.movement(bump_world))
 	ent_world:add_system(systems.collision(bump_world))
 	ent_world:add_system(systems.attack(bump_world))
+	ent_world:add_system(systems.enemy(bump_world))
 end
 
 function love.update(dt)

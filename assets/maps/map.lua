@@ -533,19 +533,6 @@ return {
           rotation = 0,
           visible = true,
           properties = {}
-        },
-        {
-          id = 36,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 1824,
-          y = 1152,
-          width = 32,
-          height = 96,
-          rotation = 0,
-          visible = true,
-          properties = {}
         }
       }
     }

@@ -336,6 +336,53 @@ return {
 		end
 
 		return system
+	end,
+
+	sound = function()
+		local system = ecs.system.new({ "sound" })
+
+		local position
+		local e_vector
+
+		function system:load(entity)
+			
+		end
+
+		function system:update(dt, entity)
+			if entity:get("position") then
+				position = entity:get("position")
+			end
+
+			if entity:get("player") then
+				player_pos = entity:get("position")
+			end
+
+			if entity:get("enemy") then
+				enemy_pos = entity:get("position")
+			end
+
+			if player_pos and enemy_pos then
+				dx = player_pos.x - enemy_pos.x
+				dy = player_pos.y - enemy_pos.y
+
+				local vector = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
+				print("vector: " .. vector)
+
+				ex = dx / math.abs(vector)
+				ey = dy / math.abs(vector)
+
+				if entity:get("sound").background then
+					love.audio.setDistanceModel("inverse")
+					sound = entity:get("sound").sound
+					sound:setVolume(1/vector*9)
+					print("sound: " .. sound:getVolume())
+					--sound:setPosition(enemy_pos.x, enemy_pos.y)
+					sound:play()
+				end
+			end
+		end
+
+		return system
 	end
 }
 

@@ -77,7 +77,10 @@ return {
 		local component = ecs.component.new("enemy")
 
 		component.health = health
-		
+		component.knockback_x = 0
+		component.knockback_y = 0
+		component.stun_timer = 0
+
 		return component
 	end,
 

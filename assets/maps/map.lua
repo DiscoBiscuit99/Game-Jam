@@ -356,7 +356,7 @@ return {
       type = "objectgroup",
       id = 3,
       name = "collisions",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
@@ -530,19 +530,6 @@ return {
           y = 1408,
           width = 32,
           height = 192,
-          rotation = 0,
-          visible = true,
-          properties = {}
-        },
-        {
-          id = 36,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 1824,
-          y = 1152,
-          width = 32,
-          height = 96,
           rotation = 0,
           visible = true,
           properties = {}

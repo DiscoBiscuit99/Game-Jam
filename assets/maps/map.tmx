@@ -233,6 +233,5 @@
   <object id="32" x="1568" y="1600" width="32" height="160"/>
   <object id="33" x="1504" y="1728" width="64" height="32"/>
   <object id="35" x="1728" y="1408" width="32" height="192"/>
-  <object id="36" x="1824" y="1152" width="32" height="96"/>
  </objectgroup>
 </map>
